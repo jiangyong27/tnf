@@ -1,0 +1,6 @@
+#!/bin/sh
+#scp jasonyjiang@10.6.209.151:/data6/jasonyjiang/common_search/online/abu/proto/abu_interface.proto .
+rm -f *.cc
+rm -f *.h
+
+protoc --proto_path=. --cpp_out=. *.proto

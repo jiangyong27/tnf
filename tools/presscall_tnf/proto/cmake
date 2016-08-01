@@ -1,0 +1,8 @@
+#!/bin/sh
+rm -f *.cpp
+rm -f *.h
+rm -f *.cc
+rm -f *.o
+
+#protoc --proto_path=. --cpp_out=. ./business_interface.proto
+protoc --proto_path=. --cpp_out=. ./*.proto

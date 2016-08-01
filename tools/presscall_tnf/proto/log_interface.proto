@@ -1,0 +1,15 @@
+package log_server;
+
+message LOGRequest
+{
+    optional bytes log_content = 1; // log
+    optional bytes echo = 2; // 回显字段
+}
+
+message LOGResponse
+{
+    required int32 retcode = 1; // 返回码
+    optional bytes retmsg = 2; // 返回信息
+    optional bytes echo = 3; // 回显字段
+}
+

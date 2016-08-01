@@ -1,0 +1,132 @@
+// RBU通用检索协议
+//import "proto/outer_interface/cgi_2_facewash.proto";
+
+message RBUDocItem
+{
+    optional uint64 docid = 1; // 外部docid
+    optional uint64 inner_docid = 2; //内部docid
+    optional bytes doc_meta = 3; // 使用meta中的pb格式
+    optional bytes search_debug_info = 4; // 检索调试信息
+    optional bytes rela_debug_info = 5; // 相关性调试信息
+    optional bytes merge_debug_info = 6; // L4相关性调试信息
+    optional float l0_score = 7; // l0 打分
+    optional float l1_score = 8; // l1 打分
+    optional float l2_score = 9; // l2 打分
+    optional bytes raw_abs = 10; // 原始摘要信息
+    optional int32 qrw_idx = 11; // qrw idx 
+    optional int32 xob_mask = 12; // xob mask
+    optional bytes su_docitem = 13; // su_docitem
+    optional bytes l4_output = 14; // L4输出的信息(Doc级别)
+    optional bytes platform_output = 15; // 平台输出返回上游(Doc级别)
+	
+	optional bytes qbc_info = 201;//给RBU上层传递打分信息
+}
+
+message SearchConfig
+{
+    optional uint32 debug_info_level = 1; // 平台调试信息
+    optional uint64 xob_mask = 2; // xob_mask 指定访问的集群
+    //optional rel.cgi.Cgi2FaceWash cgi_2_facewash = 3; // L4洗脸
+    optional bytes whiteboard_qrw = 4; // 白板fake qrw
+    optional bytes qrw_ip = 5; // 白板qrw ip
+    optional int32 qrw_port = 6; // 白板qrw port
+    optional bytes dignose_queryd_req_info = 7; // 白板输入调试信息
+    optional bytes dignose_abs_req_info = 8; // 白板输入调试信息
+    optional uint32 whiteboard_debug_flag = 9; // 白板调试bit位
+}
+
+message RBUDebugInfo
+{
+    optional bytes qrw_debug_info = 1;
+    optional bytes queryd_debug_info = 2;
+    optional bytes rbu_debug_info = 3;
+    //optional rel.cgi.FaceWash2Cgi facewash_2_cgi = 4; // L4洗脸log
+    optional bytes indexd_debug_info = 5;
+    optional bytes dignose_queryd_rsp_info = 6; // 返回诊断信息
+    optional bytes dignose_abs_rsp_info = 7; // 返回诊断信息
+    optional bytes common_iv_debug_flag = 8; // 诊断系统返回信息
+}
+
+message RBURequest 
+{
+    optional bytes search_id = 1; // 会话ID
+    optional uint32 client_ip = 2; // 发送者IP
+    optional bytes echo = 3; // 回显字段
+    required bytes search_query = 4; // 检索串
+    optional uint32 page_id = 5 [default = 0]; // 请求页码
+    required uint32 num_per_page = 6; // 每页结果数
+    optional uint32 rank_type = 7 [default = 0]; // 排序规则
+    optional uint32 debug_flag = 8 [default = 0]; // 调试字段
+    optional bytes num_filter = 9; // 数值过滤
+    optional bytes cl_filter = 10; // 类型过滤
+    optional bytes text_filter = 11; // 文本过滤
+    optional bytes docid_filter = 12; // docid过滤
+    optional bytes extra = 13; // 附加字段
+    optional SearchConfig search_config = 14; // whiteboard
+    optional uint32 source_id = 15; // source id
+    optional uint32 app_id = 16; // appid
+    optional uint32 query_encode = 17; // 0: utf8 1: gbk
+    optional bytes indexd_extension = 18; // 透传给indexd的附加字段
+    optional bool disable_qc = 19[default = false]; // 用于关闭qc服务
+    optional bool enable_abs_highlight = 20[default = false]; // 用于打开标红服务
+    optional uint32 second_search = 21[default = 0];
+    optional bytes sort = 22; // 排序方式，格式样例 [S:time:],通过qrw透传给平台
+    optional uint32 start_idx = 23; // 起始位置 闭区间
+    optional uint32 end_idx = 24; // 终止位置 开区间
+
+    optional SemanticInput semantic_request = 51; // 语义搜索请求
+	
+	optional uint32 qc_bid = 201[default=0]; // QC business id
+    optional uint32 max_doc_return = 202[default=300]; //the max documentes that can return to user 
+    optional uint32 use_qbc_info = 203[default=0];
+}
+
+message RBUResponse 
+{
+    required int32 retcode = 1; // 返回码
+    optional bytes retmsg = 2; // 返回信息
+    optional bytes echo = 3; // 回显字段
+    repeated RBUDocItem result_list = 4; // 返回结果
+    required int32 result_num = 5; // 结果数
+    required int32 display_num = 6; // 最多展示篇数 
+    required int32 eresult_num = 7; // 估算篇数
+    optional int32 cost_time = 8; // 检索耗时
+    optional RBUDebugInfo debug_info = 9; // 调试字段
+    repeated bytes seg_str_list = 10; // 分词结果
+    repeated uint64 seg_int_list = 11; // 分词结果
+    optional bytes qrw_result = 12; // qrw结果
+    optional bytes l4_output = 13; // L4输出信息上游(Query级别) 
+    repeated PlatformOutItem platform_output = 14; // 平台输出返回上游(Query级别) 
+
+    optional SemanticOutput semantic_response = 51; // 语义搜索响应
+}
+
+message PlatformOutItem
+{
+    optional int32 qrw_item_idx = 1; // 对应的qrw_item_idx
+    optional bytes platform_output = 2; // 平台输出返回上游(Query级别) 
+}
+
+enum SemanticReqType
+{
+    NORMAL_SEMANTIC_REQ = 1; // 包含普通检索及语义检索
+    NORMAL_ONLY_REQ = 2; // 仅包含普通检索
+    SEMANTIC_ONLY_REQ = 3; // 仅包含语义检索
+}
+
+message SemanticInput
+{
+    optional uint32 semantic_page_id = 1; // 语义搜索当前页码
+    optional uint32 semantic_num_per_page = 2; // 语义搜索每页结果数
+    optional uint32 semantic_start_idx = 3; // 语义搜索起始位置 闭区间
+    optional uint32 semantic_end_idx = 4; // 语义搜索终止位置 开区间
+    optional SemanticReqType semantic_req_type = 5[default = NORMAL_ONLY_REQ]; // 当前检索类型
+}
+
+message SemanticOutput
+{
+    repeated RBUDocItem semantic_result_list = 1; // 语义搜索结果
+    optional int32 semantic_result_num = 2; // 语义搜索结果数
+    optional int32 semantic_display_num = 3; // 语义搜索最多展示篇数
+    optional int32 semantic_eresult_num = 4; // 语义搜索估算篇数
+}
